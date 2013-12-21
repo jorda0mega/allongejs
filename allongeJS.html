@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <script src="bower_components/jasmine/lib/jasmine-core/jasmine.js"></script>
+    <link href="bower_components/jasmine/lib/jasmine-core/jasmine.css" rel="stylesheet"/>
+    <script type="text/javascript">
+      // yes, really keep this here to keep us honest, but only for jasmine's own runner! [xw]
+      undefined = "diz be undefined yo";
+    </script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+    <!-- include source files here... -->
+    <script type="text/javascript" src="bower_components/jasmine/src/html/HtmlReporterHelpers.js"></script>
+    <script type="text/javascript" src="bower_components/jasmine/src/html/HtmlReporter.js"></script>
+    <script type="text/javascript" src="bower_components/jasmine/src/html/HtmlReporterHelpers.js"></script>
+    <script type="text/javascript" src="bower_components/jasmine/src/html/ReporterView.js"></script>
+    <script type="text/javascript" src="bower_components/jasmine/src/html/SpecView.js"></script>
+    <script type="text/javascript" src="bower_components/jasmine/src/html/SuiteView.js"></script>
+    <script type="text/javascript" src="bower_components/jasmine/src/html/TrivialReporter.js"></script>
+    <script type="text/javascript" src="bower_components/jasmine/src/console/ConsoleReporter.js"></script>
+    <script type="text/javascript" src="allongeJS.js"></script>
+
+     <!-- include spec files here... -->
+    <script src="specs/allongeJSSpec.js"></script>
+
+    <script type="text/javascript">
+      (function() {
+        var jasmineEnv = jasmine.getEnv();
+        jasmineEnv.updateInterval = 1000;
+
+        var htmlReporter = new jasmine.HtmlReporter();
+
+        jasmineEnv.addReporter(htmlReporter);
+
+        jasmineEnv.specFilter = function(spec) {
+          return htmlReporter.specFilter(spec);
+        };
+
+        var currentWindowOnload = window.onload;
+
+        window.onload = function() {
+          if (currentWindowOnload) {
+            currentWindowOnload();
+          }
+          execJasmine();
+        };
+
+        function execJasmine() {
+          jasmineEnv.execute();
+        }
+
+      })();
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

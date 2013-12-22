@@ -177,7 +177,7 @@ function close(fn){
 
 function mapWith(fn){
   return function(list){
-    return Array.prototyp.map.call(this, function(something){
+    return Array.prototype.map.call(this, function(something){
       return fn(something);
     });
   };
@@ -607,3 +607,146 @@ function callLeft(fn){
   return curry(fn).apply(null, __slice.call(arguments, 1));
 }
 
+callLeft(sumOfFour, 1)(2,3,4)
+
+var bound = variadic(function(messageName, args){
+  if(args === []){
+    return function(instance){
+      return instance[messageName].bind(instance);
+    };
+  }
+  else{
+    return function(instance){
+      return Function.prototype.bind.apply(instance[messageName], [instance].concat(args));
+    };
+  }
+});
+
+function InventoryRecord(apples, oranges, eggs){
+  this.record = {
+    apples: apples,
+    oranges: oranges,
+    eggs: eggs
+  };
+}
+
+InventoryRecord.prototype.apples = function apples(){
+  return this.record.apples;
+};
+InventoryRecord.prototype.oranges = function oranges(){
+  return this.record.oranges;
+};
+InventoryRecord.prototype.eggs = function eggs(){
+  return this.record.eggs;
+};
+
+var inventories = [
+  new InventoryRecord(0, 144, 36),
+  new InventoryRecord(240, 54, 12),
+  new InventoryRecord(24, 12, 42)
+];
+
+InventoryRecord.prototype.add = function(item, amount){
+  this.record[item] || (this.record[item] = 0);
+  this.record[item] += amount;
+  return this;
+};
+
+var unbind = function unbind(fn){
+  return fn.unbound ? unbind(fn.unbound()) : fn;
+};
+
+function bind(fn, context, force){
+  var unbound, bound;
+
+  if(force){
+    fn = unbind(fn);
+  }
+  bound = function(){
+    return fn.apply(context, arguments);
+  };
+  bound.unbound = function(){
+    return fn;
+  };
+
+  return bound;
+}
+
+var send = variadic(function(args){
+  var fn = bound.apply(this, args);
+
+  return function(instance){
+    return fn(instance)();
+  };
+});
+
+var send = variadic(function(methodName, leftArguments){
+  return variadic(function(receiver, rightArguments){
+    return receiver[methodName].apply(receiver, leftArguments.concat(rightArguments));
+  });
+});
+
+function invoke(fn){
+  var args = __slice.call(arguments, 1);
+
+  return function(instance){
+    return fn.apply(instance, args);
+  };
+}
+
+var data = [
+  {
+    0: "zero",
+    1: "one",
+    2: "two",
+    foo: "foo",
+    length: 3
+  }
+];
+
+var __copy = callFirst(Array.prototype.slice, 0);
+
+mapWith(invoke(__copy))(data);
+
+function instanceEval(instance){
+  return function(fn){
+    var args = __slice.call(arguments, 1);
+
+    return fn.apply(instance, args);
+  };
+}
+
+var args = instanceEval(arguments)(__slice, 0);
+
+function fluent(methodBody){
+  return function(){
+    methodBody.apply(this, arguments);
+    return this;
+  };
+}
+
+function once(fn){
+  var done = false,
+      testAndSet;
+
+  if(!!fn.name){
+    testAndSet = function(){
+      this["__once__"] || (this["__once__"] = {});
+      if(this["__once__"][fn.name]) return true;
+
+      this["__once__"][fn.name] = true;
+      return false;
+    };
+  }
+  else{
+    testAndSet = function(fn){
+      if(done) return true;
+      done = true;
+      return false;
+    };
+  }
+
+  return function(){
+    return testAndSet.call(this) ? void 0 : fn.apply(this, arguments);
+  }
+}
